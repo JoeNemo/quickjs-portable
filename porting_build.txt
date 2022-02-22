@@ -1,0 +1,37 @@
+QuickJS compiles well on many platorms using GCC or Clang.  Linux and
+BSD distros do this well with exactly the instructions in the primary
+QuickJS repo.  ZOS and Windows are OS's that are more challenging for
+porting.  This repo is a minor variant on QuickJS that uses Clang/LLVM
+as its multiplatform compile/link tool.
+
+Building on Z
+
+Clang-13 is in beta on ZOS but works very on C11 sources.
+
+The primary issues on ZOS are accounting for the native character set
+(EBCDIC) and filling gaps in the C11 standard libraries.  The lattr
+will probably vanish, but the former will persist indefinitely.
+
+Please set a Environment Variable for Clang
+
+  export CLANG="<somePath>/openxl_beta2"
+
+Git clone to quickjs to some repo and cd there.
+
+1) Make the compiler
+
+${CLANG}/bin/clang-13 -DCONFIG_VERSION=\"2021-03-27\" -D__SUSV3_THR=1 -D_OPEN_THREADS -D_XOPEN_SOURCE=600 -D_LARGE_TIME_API -D_OPEN_SYS_FILE_EXT=1 -fzos-le-char-mode=ascii -m64 -o qjsc qjsc.c quickjs.c cutils.c quickjs-libc.c  libbf.c libregexp.c libunicode.c porting/polyfill.c porting/debugutil.c
+
+2) Compile repl
+qjsc -c -o repl.c -m repl.js
+
+3) build the interpreter 
+
+${CLANG}/bin/clang-13 -DCONFIG_VERSION=\"2021-03-27\" -D__SUSV3_THR=1 -D_OPEN_THREADS -D_XOPEN_SOURCE=600 -D_LARGE_TIME_API -D_OPEN_SYS_FILE_EXT=1 -fzos-le-char-mode=ascii -m64 -o qjs qjs.c repl.c quickjs.c cutils.c quickjs-libc.c  libbf.c libregexp.c libunicode.c porting/polyfill.c porting/debugutil.c
+
+4) Test it by running qjs.
+
+5) Building libraries for embedding
+
+<TBD>
+
