@@ -32,6 +32,12 @@
 #include <time.h>
 #include <fenv.h>
 #include <math.h>
+
+#ifdef __MVS__  /* JOENemo */
+#include <stdint.h>
+#include "porting/polyfill.h"
+#endif
+
 #if defined(__APPLE__)
 #include <malloc/malloc.h>
 #elif defined(__linux__)
@@ -58,6 +64,8 @@
 
 #if defined(__APPLE__)
 #define MALLOC_OVERHEAD  0
+#elif defined(__MVS__) 
+#define MALLOC_OVERHEAD  0x10  /* JOENemo, 64 bit malloc assumed */
 #else
 #define MALLOC_OVERHEAD  8
 #endif
@@ -41990,6 +41998,8 @@ static JSValue js___date_clock(JSContext *ctx, JSValueConst this_val,
 static int getTimezoneOffset(int64_t time) {
 #if defined(_WIN32)
     /* XXX: TODO */
+    return 0;
+#elif defined(__MVS__) /* JOENemo */
     return 0;
 #else
     time_t ti;
