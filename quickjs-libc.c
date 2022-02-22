@@ -47,6 +47,12 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
+#ifdef __MVS__ /* JOENemo */
+#include "porting/polyfill.h"
+#define PATH_MAX _POSIX_PATH_MAX
+extern char **environ;
+#endif
+
 #if defined(__APPLE__)
 typedef sig_t sighandler_t;
 #if !defined(environ)
@@ -63,8 +69,13 @@ typedef sig_t sighandler_t;
 #endif
 
 #ifdef USE_WORKER
+#ifdef __MVS__ /* JOENemo */
+#define __SUSV3_THR 1
+#endif
 #include <pthread.h>
+#ifndef __MVS__ /* JOENemo */
 #include <stdatomic.h>
+#endif
 #endif
 
 #include "cutils.h"
@@ -1854,9 +1865,17 @@ static JSValue js_os_setReadHandler(JSContext *ctx, JSValueConst this_val,
     JSOSRWHandler *rh;
     int fd;
     JSValueConst func;
+
     
     if (JS_ToInt32(ctx, &fd, argv[0]))
         return JS_EXCEPTION;
+
+#ifdef QASCII    /* JOENemo */
+    if (fd == STDIN_FILENO){
+      convertOpenStream(fd,1047);  /* JOENemo hacked assumption that type-in is occuring in 1047 */
+    }
+#endif
+
     func = argv[1];
     if (JS_IsNull(func)) {
         rh = find_rh(ts, fd);
@@ -1912,7 +1931,7 @@ static void os_signal_handler(int sig_num)
     os_pending_signals |= ((uint64_t)1 << sig_num);
 }
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__MVS__) /* JOENemo */
 typedef void (*sighandler_t)(int sig_num);
 #endif
 
@@ -2532,7 +2551,7 @@ static JSValue js_os_stat(JSContext *ctx, JSValueConst this_val,
                                   JS_NewInt64(ctx, st.st_blocks),
                                   JS_PROP_C_W_E);
 #endif
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(__MVS__) /* JOENemo */
         JS_DefinePropertyValueStr(ctx, obj, "atime",
                                   JS_NewInt64(ctx, (int64_t)st.st_atime * 1000),
                                   JS_PROP_C_W_E);
@@ -2625,6 +2644,11 @@ static JSValue js_os_sleep(JSContext *ctx, JSValueConst this_val,
             delay = INT32_MAX;
         Sleep(delay);
         ret = 0;
+    }
+#elif defined(__MVS__)
+    {
+        int uStatus = usleep(delay*1000);  /* JOENemo milli->micro */
+	ret = (uStatus ? errno : 0);
     }
 #else
     {
@@ -3146,7 +3170,11 @@ static JSContext *(*js_worker_new_context_func)(JSRuntime *rt);
 
 static int atomic_add_int(int *ptr, int v)
 {
+#ifdef __MVS__
+    return atomicIncrementI32(ptr,v); /* JOENemo */
+#else
     return atomic_fetch_add((_Atomic(uint32_t) *)ptr, v) + v;
+#endif
 }
 
 /* shared array buffer allocator */

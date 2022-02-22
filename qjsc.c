@@ -33,6 +33,10 @@
 #include <sys/wait.h>
 #endif
 
+#ifdef __MVS__
+#include "porting/polyfill.h"
+#endif
+
 #include "cutils.h"
 #include "quickjs-libc.h"
 
@@ -623,6 +627,9 @@ int main(int argc, char **argv)
     }
     
     fo = fopen(cfilename, "w");
+#ifdef QASCII /* JOENemo */
+    tagFile(cfilename, CHARSET_ISO8859);
+#endif
     if (!fo) {
         perror(cfilename);
         exit(1);

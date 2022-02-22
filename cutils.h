@@ -29,7 +29,11 @@
 #include <inttypes.h>
 
 /* set if CPU is big endian */
+#ifdef __MVS__
+#define WORDS_BIGENDIAN
+#else
 #undef WORDS_BIGENDIAN
+#endif
 
 #define likely(x)       __builtin_expect(!!(x), 1)
 #define unlikely(x)     __builtin_expect(!!(x), 0)

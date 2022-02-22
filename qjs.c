@@ -36,6 +36,8 @@
 #include <malloc/malloc.h>
 #elif defined(__linux__)
 #include <malloc.h>
+#elif defined(__MVS__)
+#include "porting/polyfill.h"
 #endif
 
 #include "cutils.h"
@@ -454,8 +456,10 @@ int main(int argc, char **argv)
         }
     }
 
+#ifdef CONFIG_BIGNUM /* JOENemo - this is not a platform change, but an actual bug. */
     if (load_jscalc)
         bignum_ext = 1;
+#endif
 
     if (trace_memory) {
         js_trace_malloc_init(&trace_data);
