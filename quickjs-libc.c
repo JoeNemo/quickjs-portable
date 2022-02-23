@@ -53,7 +53,9 @@
 #include <signal.h>
 #include <limits.h>
 
+#ifdef _MSC_VER /* JOENemo */
 #define PATH_MAX 256  /* JOENemo, shouldn't this be in limits ? */
+#endif
 
 #include <sys/stat.h>
 #ifdef _MSC_VER      /* JOE */
