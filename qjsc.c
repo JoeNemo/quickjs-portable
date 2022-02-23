@@ -25,9 +25,14 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <inttypes.h>
-#include <string.h>
 #include <assert.h>
+#ifndef _MSC_VER      /* JOENemo */
+#include <string.h>
 #include <unistd.h>
+#else
+#include "winstring.h"
+#include "winunistd.h"
+#endif
 #include <errno.h>
 #if !defined(_WIN32)
 #include <sys/wait.h>

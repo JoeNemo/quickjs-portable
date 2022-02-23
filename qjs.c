@@ -28,7 +28,9 @@
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
+#ifndef _MSC_VER      /* JOENemo */
 #include <unistd.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 #include <time.h>

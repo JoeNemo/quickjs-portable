@@ -23,6 +23,9 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#ifdef _MSC_VER
+#include <malloc.h>  /* JOENemo for alloca */
+#endif 
 #include <stdarg.h>
 #include <inttypes.h>
 #include <string.h>

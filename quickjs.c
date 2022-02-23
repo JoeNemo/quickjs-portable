@@ -23,13 +23,28 @@
  * THE SOFTWARE.
  */
 #include <stdlib.h>
+
+#ifndef _MSC_VER  /* WINDOWS - JOENemo */
 #include <stdio.h>
+#else 
+#include "winstdio.h"
+#include <malloc.h>   /* for alloca() */
+#endif
+
 #include <stdarg.h>
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
+#ifndef _MSC_VER  /* WINDOWS - JOENemo */
 #include <sys/time.h>
+#else
+#include <winsock.h>
+#endif  /* WINDOWS */
+#ifndef _MSC_VER /* JOE */
 #include <time.h>
+#else
+#include "wintime.h"
+#endif
 #include <fenv.h>
 #include <math.h>
 
@@ -45,6 +60,8 @@
 #elif defined(__FreeBSD__)
 #include <malloc_np.h>
 #endif
+
+typedef int64_t ssize_t; /* JOENemo - I don't know where this comes from, but it's necessary */
 
 #include "cutils.h"
 #include "list.h"
@@ -118,7 +135,11 @@
 //#define FORCE_GC_AT_MALLOC
 
 #ifdef CONFIG_ATOMICS
+#ifdef _MSC_VER
+#include "winpthread.h"
+#else 
 #include <pthread.h>
+#endif
 #include <stdatomic.h>
 #include <errno.h>
 #endif

@@ -4,6 +4,8 @@ QuickJS repo.  ZOS and Windows are OS's that are more challenging for
 porting.  This repo is a minor variant on QuickJS that uses Clang/LLVM
 as its multiplatform compile/link tool.
 
+----------------------------------------------------------------------
+
 Building on Z
 
 Clang-13 is in beta on ZOS but works very on C11 sources.
@@ -34,4 +36,23 @@ ${CLANG}/bin/clang-13 -DCONFIG_VERSION=\"2021-03-27\" -D__SUSV3_THR=1 -D_OPEN_TH
 5) Building libraries for embedding
 
 <TBD>
+
+--------------------------------------------------------------------------
+
+Building on Windows
+
+0) Get Clang/LLVM Version 12 or later. 
+0.1) Get Windows 10 or Later.  It came out into 2015.  That shouldn't be too hard. :P
+
+1) Build the QJSC compiler first
+
+clang -I porting -DCONFIG_VERSION=\"2021-03-27\" -D_CRT_SECURE_NO_WARNINGS -Wdeprecated-declarations --rtlib=compiler-rt -o qjsc.exe qjsc.c quickjs.c cutils.c quickjs-libc.c  libbf.c libregexp.c libunicode.c porting/winpthread.c porting/wintime.c porting/windirent.c porting/winunistd.c
+
+2) Compile the repl
+
+qjsc -c -o repl.c -m repl.js
+
+3) build the interpreter
+
+clang -I porting -DCONFIG_VERSION=\"2021-03-27\" -D_CRT_SECURE_NO_WARNINGS -Wdeprecated-declarations --rtlib=compiler-rt -o qjs.exe qjs.c quickjs.c cutils.c quickjs-libc.c  libbf.c libregexp.c libunicode.c porting/winpthread.c porting/wintime.c porting/windirent.c porting/winunistd.c repl.c
 

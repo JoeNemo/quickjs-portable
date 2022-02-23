@@ -23,24 +23,49 @@
  * THE SOFTWARE.
  */
 #include <stdlib.h>
+#ifndef _MSC_VER  /* WINDOWS - JOENemo Windows */
+#include <stdio.h>
+#else 
+#include "winstdio.h"
+#endif
 #include <stdio.h>
 #include <stdarg.h>
 #include <inttypes.h>
 #include <string.h>
 #include <assert.h>
+#ifndef _MSC_VER      /* JOENemo */
 #include <unistd.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
+#ifndef _MSC_VER  /* WINDOWS - JOENemo */
 #include <sys/time.h>
+#else
+#include <winsock.h>
+#endif  /* WINDOWS */
+
+#ifndef _MSC_VER /* JOENemo */
 #include <time.h>
+#else
+#include "wintime.h"
+#endif
+
 #include <signal.h>
 #include <limits.h>
+
+#define PATH_MAX 256  /* JOENemo, shouldn't this be in limits ? */
+
 #include <sys/stat.h>
+#ifdef _MSC_VER      /* JOE */
+#include "windirent.h"
+#else
 #include <dirent.h>
+#endif
 #if defined(_WIN32)
 #include <windows.h>
 #include <conio.h>
-#include <utime.h>
+/* #include <utime.h> */
+#include <sys/utime.h> /* JOENemo, MS Doc said sys/utime, not just <utime.h> */
 #else
 #include <dlfcn.h>
 #include <termios.h>
@@ -70,13 +95,19 @@ typedef sig_t sighandler_t;
 
 #ifdef USE_WORKER
 #ifdef __MVS__ /* JOENemo */
-#define __SUSV3_THR 1
+#define __SUSV3_THR 1 /* this should go, I think */
 #endif
+
+#ifdef _MSC_VER
+#include "winpthread.h"  /* JOE */
+#else 
 #include <pthread.h>
+#endif
+
 #ifndef __MVS__ /* JOENemo */
 #include <stdatomic.h>
 #endif
-#endif
+#endif /* USE_WORKER */
 
 #include "cutils.h"
 #include "list.h"
