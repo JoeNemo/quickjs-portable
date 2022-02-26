@@ -140,7 +140,11 @@ typedef int64_t ssize_t; /* JOENemo - I don't know where this comes from, but it
 #else 
 #include <pthread.h>
 #endif
-#include <stdatomic.h>
+
+#ifndef ZCOMPILE_XLCLANG   /* XLCLANG hybrid thing does not have stdatomic, but clang-13 does */
+#include <stdatomic.h> 
+#endif 
+
 #include <errno.h>
 #endif
 

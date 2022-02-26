@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include "polyfill.h"
 
@@ -107,7 +108,7 @@ int convertOpenStream(int fd, unsigned short fileCCSID){
 }
 
 int tagFile(char *pathname, unsigned short ccsid){
-#ifdef _LP64
+#if defined(_LP64) && defined(ZCOMPILE_CLANG)
   attrib64_t attr;
   memset(&attr,0,sizeof(attrib64_t));
 

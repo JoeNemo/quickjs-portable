@@ -6,7 +6,7 @@ as its multiplatform compile/link tool.
 
 ----------------------------------------------------------------------
 
-Building on Z
+Building on Z with Clang-13 Beta
 
 Clang-13 is in beta on ZOS but works very on C11 sources.
 
@@ -36,6 +36,34 @@ ${CLANG}/bin/clang-13 -DCONFIG_VERSION=\"2021-03-27\" -D__SUSV3_THR=1 -D_OPEN_TH
 5) Building libraries for embedding
 
 <TBD>
+
+--------------------------------------------------------------------------
+
+Building on Z with xlclang 2.4.1
+
+xlclang is the hybrid Clang-front-end-IBM-Toronto-backend
+implementation of C/C++ that is currently GA on ZOS 2.4 and later.  It
+does not support 128 bit integers but otherwise seems provides what
+QuickJS needs excluding BIGNUM support.  Fortunately very little
+JavaScript code uses the new bignum (e.g. 12345n) type numbers yet.
+
+xlclang also does not support stdatomic directly, however, the atomic
+support for C++ seemed pretty good, so polyfill.h/c now expose a
+subset of <stdatomic.h>.  A full implemention could probably be made
+with a few more days effort.
+
+1) xlclang -q64 -qascii -DCONFIG_VERSION=\"2021-03-27\" -D_OPEN_SYS_FILE_EXT=1 -D_XOPEN_SOURCE=600 -D_OPEN_THREADS=1 -DSUBPOOL=132 "-Wc,float(ieee),longname,langlvl(extc99),gonum,goff,ASM,asmlib('CEE.SCEEMAC','SYS1.MACLIB','SYS1.MODGEN')" "-Wl,ac=1" -I ../h -Wbitwise-op-parentheses -o qjsc qjsc.c quickjs.c cutils.c quickjs-libc.c libregexp.c libunicode.c porting/polyfill.c
+
+2) Compile repl
+
+qjsc -c -o repl.c -m repl.js
+
+3) build the interpreter
+
+xlclang -q64 -qascii -DCONFIG_VERSION=\"2021-03-27\" -D_OPEN_SYS_FILE_EXT=1 -D_XOPEN_SOURCE=600 -D_OPEN_THREADS=1 -DSUBPOOL=132 "-Wc,float(ieee),longname,langlvl(extc99),gonum,goff,ASM,asmlib('CEE.SCEEMAC','SYS1.MACLIB','SYS1.MODGEN')" "-Wl,ac=1" -I ../h -Wbitwise-op-parentheses -o qjs qjs.c repl.c quickjs.c cutils.c quickjs-libc.c libregexp.c libunicode.c porting/polyfill.c porting/debugutil.c
+
+4,5) as above with Clang-13 build.
+
 
 --------------------------------------------------------------------------
 
