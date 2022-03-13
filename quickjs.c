@@ -249,6 +249,28 @@ typedef enum {
     JS_GC_PHASE_REMOVE_CYCLES,
 } JSGCPhaseEnum;
 
+enum OPCodeEnum {
+#define FMT(f)
+#define DEF(id, size, n_pop, n_push, f) OP_ ## id,
+#define def(id, size, n_pop, n_push, f)
+#include "quickjs-opcode.h"
+#undef def
+#undef DEF
+#undef FMT
+    OP_COUNT, /* excluding temporary opcodes */
+    /* temporary opcodes : overlap with the short opcodes */
+    OP_TEMP_START = OP_nop + 1,
+    OP___dummy = OP_TEMP_START - 1,
+#define FMT(f)
+#define DEF(id, size, n_pop, n_push, f)
+#define def(id, size, n_pop, n_push, f) OP_ ## id,
+#include "quickjs-opcode.h"
+#undef def
+#undef DEF
+#undef FMT
+    OP_TEMP_END,
+};
+
 typedef enum OPCodeEnum OPCodeEnum;
 
 #ifdef CONFIG_BIGNUM
@@ -1005,28 +1027,6 @@ typedef enum OPCodeFormat {
 #undef DEF
 #undef FMT
 } OPCodeFormat;
-
-enum OPCodeEnum {
-#define FMT(f)
-#define DEF(id, size, n_pop, n_push, f) OP_ ## id,
-#define def(id, size, n_pop, n_push, f)
-#include "quickjs-opcode.h"
-#undef def
-#undef DEF
-#undef FMT
-    OP_COUNT, /* excluding temporary opcodes */
-    /* temporary opcodes : overlap with the short opcodes */
-    OP_TEMP_START = OP_nop + 1,
-    OP___dummy = OP_TEMP_START - 1,
-#define FMT(f)
-#define DEF(id, size, n_pop, n_push, f)
-#define def(id, size, n_pop, n_push, f) OP_ ## id,
-#include "quickjs-opcode.h"
-#undef def
-#undef DEF
-#undef FMT
-    OP_TEMP_END,
-};
 
 static int JS_InitAtoms(JSRuntime *rt);
 static JSAtom __JS_NewAtomInit(JSRuntime *rt, const char *str, int len,
@@ -10771,7 +10771,7 @@ static int JS_ToInt64SatFree(JSContext *ctx, int64_t *pres, JSValue val)
             } else {
                 if (d < INT64_MIN)
                     *pres = INT64_MIN;
-                else if (d > INT64_MAX)
+                else if (d > (double)INT64_MAX)
                     *pres = INT64_MAX;
                 else
                     *pres = (int64_t)d;
@@ -53854,7 +53854,7 @@ static JSValue js_atomics_wait(JSContext *ctx,
     }
     if (JS_ToFloat64(ctx, &d, argv[3]))
         return JS_EXCEPTION;
-    if (isnan(d) || d > INT64_MAX)
+    if (isnan(d) || d > (double)INT64_MAX)
         timeout = INT64_MAX;
     else if (d < 0)
         timeout = 0;
