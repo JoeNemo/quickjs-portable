@@ -113,13 +113,13 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp);
 
  */
 
-void dumpbuffer(void *buffer, int length); /* temp hack */
+void qdumpbuffer(void *buffer, int length); /* temp hack */
 
 int convertOpenStream(int fd, unsigned short fileCCSID);
 
 #define CHARSET_ISO8859 819
 
-int tagFile(char *pathname, unsigned short ccsid);
+int tagFile(const char *pathname, unsigned short ccsid);
 
 
 #endif

@@ -134,6 +134,6 @@ static void hexdump(char *buffer, int length, int nominalStartAddress, int forma
   fflush(stdout);
 }
 
-void dumpbuffer(void *buffer, int length){
+void qdumpbuffer(void *buffer, int length){
   hexdump((char*)buffer,length,0,32," "," ");
 }

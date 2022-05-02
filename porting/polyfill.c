@@ -107,7 +107,7 @@ int convertOpenStream(int fd, unsigned short fileCCSID){
   return res;
 }
 
-int tagFile(char *pathname, unsigned short ccsid){
+int tagFile(const char *pathname, unsigned short ccsid){
 #if defined(_LP64) && defined(ZCOMPILE_CLANG)
   attrib64_t attr;
   memset(&attr,0,sizeof(attrib64_t));
@@ -116,7 +116,7 @@ int tagFile(char *pathname, unsigned short ccsid){
   attr.att_filetag.ft_ccsid = ccsid;
   attr.att_filetag.ft_txtflag = 1;
 
-  int res = __chattr64(pathname, &attr, sizeof(attr));
+  int res = __chattr64((char*)pathname, &attr, sizeof(attr));
 #else
   attrib_t attr;
   memset(&attr,0,sizeof(attrib_t));
@@ -125,7 +125,7 @@ int tagFile(char *pathname, unsigned short ccsid){
   attr.att_filetag.ft_ccsid = ccsid;
   attr.att_filetag.ft_txtflag = 1;
 
-  int res = __chattr(pathname, &attr, sizeof(attr));
+  int res = __chattr((char*)pathname, &attr, sizeof(attr));
 #endif
   if (res){
     printf("chattr failed with errno=%d\n",errno);
