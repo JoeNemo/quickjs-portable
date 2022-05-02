@@ -3628,7 +3628,7 @@ void js_std_set_worker_new_context_func(JSContext *(*func)(JSRuntime *rt))
 
 #if defined(_WIN32)
 #define OS_PLATFORM "win32"
-#if defined(__MVS__) /* JOENemo */
+#elif defined(__MVS__) /* JOENemo */
 #define OS_PLATFORM "zos"
 #elif defined(__APPLE__)
 #define OS_PLATFORM "darwin"
