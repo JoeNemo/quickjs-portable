@@ -87,6 +87,7 @@ typedef struct fake_int128_tag{
 #endif
 
 #include <time.h>
+#include <stdbool.h>
 
 size_t malloc_usable_size (const void *ptr);
 
@@ -121,5 +122,14 @@ int convertOpenStream(int fd, unsigned short fileCCSID);
 
 int tagFile(const char *pathname, unsigned short ccsid);
 
+#define EXTATTR_MASK 0x1F
+#define EXTATTR_SHARELIB 0x10
+#define EXTATTR_NO_SHAREAS 0x08
+#define EXTATTR_APF_AUTH 0x04
+#define EXTATTR_PROGCTL 0x02
+#define EXTATTR_EXTERNAL_SYMLINK 0x01
+
+int changeExtendedAttributes(const char *pathname, int attribute, bool onOff);
 
 #endif
+

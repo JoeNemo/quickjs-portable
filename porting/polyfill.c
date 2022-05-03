@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -130,6 +131,67 @@ int tagFile(const char *pathname, unsigned short ccsid){
   if (res){
     printf("chattr failed with errno=%d\n",errno);
   }
+  return res;
+}
+
+#define EXTATTR_SHARELIB 0x10
+#define EXTATTR_NO_SHAREAS 0x08
+#define EXTATTR_APF_AUTH 0x04
+#define EXTATTR_PROGCTL 0x02
+
+int changeExtendedAttributes(const char *pathname, int attribute, bool onOff){
+#if defined(_LP64) && defined(ZCOMPILE_CLANG)
+  attrib64_t attr;
+  memset(&attr,0,sizeof(attrib64_t));
+
+  attr.att_setgen = 1;
+  switch (attribute){
+  case EXTATTR_SHARELIB:
+    attr.att_sharelibmask = 1;
+    attr.att_sharelib = (onOff ? 1 : 0);
+    break;
+  case EXTATTR_NO_SHAREAS:
+    attr.att_noshareasmask = 1;
+    attr.att_noshareas = (onOff ? 1 : 0);
+    break;
+  case EXTATTR_APF_AUTH:
+    attr.att_apfauthmask = 1;
+    attr.att_apfauth = (onOff ? 1 : 0);
+    break;
+  case EXTATTR_PROGCTL:
+    attr.att_progctlmask = 1;
+    attr.att_progctl = (onOff ? 1 : 0);
+    break;
+  }
+
+  int res = __chattr64((char*)pathname, &attr, sizeof(attr));
+#else
+  attrib_t attr;
+  memset(&attr,0,sizeof(attrib_t));
+
+  attr.att_setgen = 1;
+  switch (attribute){
+  case EXTATTR_SHARELIB:
+    attr.att_sharelibmask = 1;
+    attr.att_sharelib = (onOff ? 1 : 0);
+    break;
+  case EXTATTR_NO_SHAREAS:
+    attr.att_noshareasmask = 1;
+    attr.att_noshareas = (onOff ? 1 : 0);
+    break;
+  case EXTATTR_APF_AUTH:
+    attr.att_apfauthmask = 1;
+    attr.att_apfauth = (onOff ? 1 : 0);
+    break;
+  case EXTATTR_PROGCTL:
+    attr.att_progctlmask = 1;
+    attr.att_progctl = (onOff ? 1 : 0);
+    break;
+  }
+
+  int res = __chattr((char*)pathname, &attr, sizeof(attr));
+#endif
+
   return res;
 }
 
