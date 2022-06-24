@@ -89,6 +89,8 @@ typedef struct fake_int128_tag{
 #include <time.h>
 #include <stdbool.h>
 
+void printf2(char *fmt, ...);
+
 size_t malloc_usable_size (const void *ptr);
 
 int32_t atomicIncrementI32(int32_t *intPointer, int32_t increment);
