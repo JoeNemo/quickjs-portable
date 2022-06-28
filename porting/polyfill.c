@@ -27,7 +27,11 @@ int32_t atomicIncrementI32(int32_t *place, int32_t increment){
   int32_t oldValue = 0;
   int32_t newValue = 0;  /* just to let compiler figure out a register */
   int pswMask = 0;
+#ifdef _LP64
   int64_t addr = (int64_t)place;
+#else 
+  int32_t addr = (int32_t)place;
+#endif
   while (1){
     oldValue = *place;
     newValue = oldValue+increment;
@@ -63,6 +67,7 @@ int32_t atomicIncrementI32(int32_t *place, int32_t increment){
 
 #endif
 
+
 /*
 struct timespec {
         time_t   tv_sec;        -- seconds 
@@ -77,6 +82,7 @@ static const uint64_t unixSecondsAfterZ = UINT64_C(2208988800);
 
 int clock_gettime(clockid_t clk_id, struct timespec *tp){
   uint64_t stck;
+#ifdef _LP64
   __asm(" STCK %0 "
 	: : "m"(stck): "r15");
   long micros = (long)(stck&0xFFF);
@@ -94,6 +100,9 @@ int clock_gettime(clockid_t clk_id, struct timespec *tp){
       return EINVAL; /* 22 */
     }
   }
+#else
+  return 0; /* fix me */
+#endif
 }
 
 int convertOpenStream(int fd, unsigned short fileCCSID){
@@ -196,4 +205,289 @@ int changeExtendedAttributes(const char *pathname, int attribute, bool onOff){
 
   return res;
 }
+
+/* ADD */
+int atomicAddInt(int *p, int x){
+  int old = *p;
+  *p = old+x;
+  return old;
+}
+
+uint64_t atomicAddU64(_Atomic(uint64_t) *p, uint64_t x){
+  uint64_t old = *p;
+  *p = old+x;
+  return old;
+}
+
+uint32_t atomicAddU32(_Atomic(uint32_t) *p, uint32_t x){
+  uint32_t old = *p;
+  *p = old+x;
+  return old;
+}
+
+uint16_t atomicAddU16(_Atomic(uint16_t) *p, uint16_t x){
+  uint16_t old = *p;
+  *p = old+x;
+  return old;
+}
+
+uint8_t atomicAddU8(_Atomic(uint8_t) *p, uint8_t x){
+  uint8_t old = *p;
+  *p = old+x;
+  return old;
+}
+
+/* SUB */
+int atomicSubInt(int *p, int x){
+  int old = *p;
+  *p = old-x;
+  return old;
+}
+
+uint64_t atomicSubU64(_Atomic(uint64_t) *p, uint64_t x){
+  uint64_t old = *p;
+  *p = old-x;
+  return old;
+}
+
+uint32_t atomicSubU32(_Atomic(uint32_t) *p, uint32_t x){
+  uint32_t old = *p;
+  *p = old-x;
+  return old;
+}
+
+uint16_t atomicSubU16(_Atomic(uint16_t) *p, uint16_t x){
+  uint16_t old = *p;
+  *p = old-x;
+  return old;
+}
+
+uint8_t atomicSubU8(_Atomic(uint8_t) *p, uint8_t x){
+  uint8_t old = *p;
+  *p = old-x;
+  return old;
+}
+
+/* AND */
+int atomicAndInt(int *p, int x){
+  int old = *p;
+  *p = old & x;
+  return old;
+}
+
+uint64_t atomicAndU64(_Atomic(uint64_t) *p, uint64_t x){
+  uint64_t old = *p;
+  *p = old & x;
+  return old;
+}
+
+uint32_t atomicAndU32(_Atomic(uint32_t) *p, uint32_t x){
+  uint32_t old = *p;
+  *p = old & x;
+  return old;
+}
+
+uint16_t atomicAndU16(_Atomic(uint16_t) *p, uint16_t x){
+  uint16_t old = *p;
+  *p = old & x;
+  return old;
+}
+
+uint8_t atomicAndU8(_Atomic(uint8_t) *p, uint8_t x){
+  uint8_t old = *p;
+  *p = old & x;
+  return old;
+}
+
+/* OR */
+int atomicOrInt(int *p, int x){
+  int old = *p;
+  *p = old | x;
+  return old;
+}
+
+uint64_t atomicOrU64(_Atomic(uint64_t) *p, uint64_t x){
+  uint64_t old = *p;
+  *p = old | x;
+  return old;
+}
+
+uint32_t atomicOrU32(_Atomic(uint32_t) *p, uint32_t x){
+  uint32_t old = *p;
+  *p = old | x;
+  return old;
+}
+
+uint16_t atomicOrU16(_Atomic(uint16_t) *p, uint16_t x){
+  uint16_t old = *p;
+  *p = old | x;
+  return old;
+}
+
+uint8_t atomicOrU8(_Atomic(uint8_t) *p, uint8_t x){
+  uint8_t old = *p;
+  *p = old | x;
+  return old;
+}
+
+/* XOR */
+int atomicXorInt(int *p, int x){
+  int old = *p;
+  *p = old ^ x;
+  return old;
+}
+
+uint64_t atomicXorU64(_Atomic(uint64_t) *p, uint64_t x){
+  uint64_t old = *p;
+  *p = old ^ x;
+  return old;
+}
+
+uint32_t atomicXorU32(_Atomic(uint32_t) *p, uint32_t x){
+  uint32_t old = *p;
+  *p = old ^ x;
+  return old;
+}
+
+uint16_t atomicXorU16(_Atomic(uint16_t) *p, uint16_t x){
+  uint16_t old = *p;
+  *p = old ^ x;
+  return old;
+}
+
+uint8_t atomicXorU8(_Atomic(uint8_t) *p, uint8_t x){
+  uint8_t old = *p;
+  *p = old ^ x;
+  return old;
+}
+
+/* LOAD */
+int atomicLoadInt(int *p){
+  int old = *p;
+  return old;
+}
+
+uint64_t atomicLoadU64(_Atomic(uint64_t) *p){
+  uint64_t old = *p;
+  return old;
+}
+
+uint32_t atomicLoadU32(_Atomic(uint32_t) *p){
+  uint32_t old = *p;
+  return old;
+}
+
+uint16_t atomicLoadU16(_Atomic(uint16_t) *p){
+  uint16_t old = *p;
+  return old;
+}
+
+uint8_t atomicLoadU8(_Atomic(uint8_t) *p){
+  uint8_t old = *p;
+  return old;
+}
+
+/* STORE */
+void atomicStoreInt(int *p, int x){
+  *p = x;
+}
+
+void atomicStoreU64(_Atomic(uint64_t) *p, uint64_t x){
+  *p = x;
+}
+
+void atomicStoreU32(_Atomic(uint32_t) *p, uint32_t x){
+  *p = x;
+}
+
+void atomicStoreU16(_Atomic(uint16_t) *p, uint16_t x){
+  *p = x;
+}
+
+void atomicStoreU8(_Atomic(uint8_t) *p, uint8_t x){
+  *p = x;
+}
+
+/* Exchange */
+int atomicExchangeInt(int *p, int x){
+  int old = *p;
+  *p = x;
+  return old;
+}
+
+uint64_t atomicExchangeU64(_Atomic(uint64_t) *p, uint64_t x){
+  uint64_t old = *p;
+  *p = x;
+  return old;
+}
+
+uint32_t atomicExchangeU32(_Atomic(uint32_t) *p, uint32_t x){
+  uint32_t old = *p;
+  *p = x;
+  return old;
+}
+
+uint16_t atomicExchangeU16(_Atomic(uint16_t) *p, uint16_t x){
+  uint16_t old = *p;
+  *p = x;
+  return old;
+}
+
+uint8_t atomicExchangeU8(_Atomic(uint8_t) *p, uint8_t x){
+  uint8_t old = *p;
+  *p = x;
+  return old;
+}
+
+/* Compare_Exchange_Strong */
+_Bool atomicCompareExchangeStrongInt(int *p, int *exp, int desired){
+  if (*p == *exp){
+    *p = desired;
+    return true;
+  } else{
+    *exp = *p;
+    return false;
+  } 
+}
+
+_Bool atomicCompareExchangeStrongU64(_Atomic(uint64_t) *p, uint64_t *exp, uint64_t desired){
+  if (*p == *exp){
+    *p = desired;
+    return true;
+  } else{
+    *exp = *p;
+    return false;
+  } 
+}
+
+_Bool atomicCompareExchangeStrongU32(_Atomic(uint32_t) *p, uint32_t *exp, uint32_t desired){
+  if (*p == *exp){
+    *p = desired;
+    return true;
+  } else{
+    *exp = *p;
+    return false;
+  } 
+}
+
+_Bool atomicCompareExchangeStrongU16(_Atomic(uint16_t) *p, uint16_t *exp, uint16_t desired){
+  if (*p == *exp){
+    *p = desired;
+    return true;
+  } else{
+    *exp = *p;
+    return false;
+  } 
+}
+
+_Bool atomicCompareExchangeStrongU8(_Atomic(uint8_t) *p, uint8_t *exp, uint8_t desired){
+  if (*p == *exp){
+    *p = desired;
+    return true;
+  } else{
+    *exp = *p;
+    return false;
+  } 
+}
+
 

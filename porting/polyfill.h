@@ -17,7 +17,6 @@
 
 #ifdef ZCOMPILE_XLCLANG 
 
-
 /* Notation from standard
 
       http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1548.pdf
@@ -45,6 +44,13 @@ enum memory_order{
 
 typedef enum memory_order memory_order;
 
+typedef _Atomic(int) atomic_int;
+typedef _Atomic(uint8_t) atomic_uint8_t;
+typedef _Atomic(uint16_t) atomic_uint16_t;
+typedef _Atomic(uint32_t) atomic_uint32_t;
+typedef _Atomic(uint64_t) atomic_uint64_t;
+
+#ifdef _LP64
 #define atomic_fetch_add(ptr, val) __c11_atomic_fetch_add(ptr, val, memory_order_seq_cst)
 #define atomic_fetch_sub(ptr, val) __c11_atomic_fetch_sub(ptr, val, memory_order_seq_cst)
 #define atomic_fetch_and(ptr, val) __c11_atomic_fetch_and(ptr, val, memory_order_seq_cst)
@@ -55,12 +61,129 @@ typedef enum memory_order memory_order;
 #define atomic_exchange(ptr, val) __c11_atomic_exchange(ptr, val, memory_order_seq_cst)
 #define atomic_compare_exchange_weak(ptr, exch, val) __c11_atomic_compare_exchange_weak(ptr, exch, val, memory_order_seq_cst, memory_order_seq_cst)
 #define atomic_compare_exchange_strong(ptr, exch, val) __c11_atomic_compare_exchange_strong(ptr, exch, val, memory_order_seq_cst, memory_order_seq_cst)
+#else
 
-typedef _Atomic(int) atomic_int;
-typedef _Atomic(uint8_t) atomic_uint8_t;
-typedef _Atomic(uint16_t) atomic_uint16_t;
-typedef _Atomic(uint32_t) atomic_uint32_t;
-typedef _Atomic(uint64_t) atomic_uint64_t;
+#define atomic_fetch_add(p,x) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicAddU64, \
+                                _Atomic(uint32_t) *: atomicAddU32, \
+                                _Atomic(uint16_t) *: atomicAddU16, \
+                                _Atomic(uint8_t) *: atomicAddU8,   \
+                                int *: atomicAddInt)(p,x)
+
+int atomicAddInt(int *p, int x);
+uint64_t atomicAddU64(_Atomic(uint64_t) *p, uint64_t x);
+uint32_t atomicAddU32(_Atomic(uint32_t) *p, uint32_t x);
+uint16_t atomicAddU16(_Atomic(uint16_t) *p, uint16_t x);
+uint8_t atomicAddU8(_Atomic(uint8_t) *p, uint8_t x);
+
+#define atomic_fetch_sub(p,x) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicSubU64, \
+                                _Atomic(uint32_t) *: atomicSubU32, \
+                                _Atomic(uint16_t) *: atomicSubU16, \
+                                _Atomic(uint8_t) *: atomicSubU8,   \
+                                int *: atomicSubInt)(p,x)
+
+int atomicSubInt(int *p, int x);
+uint64_t atomicSubU64(_Atomic(uint64_t) *p, uint64_t x);
+uint32_t atomicSubU32(_Atomic(uint32_t) *p, uint32_t x);
+uint16_t atomicSubU16(_Atomic(uint16_t) *p, uint16_t x);
+uint8_t atomicSubU8(_Atomic(uint8_t) *p, uint8_t x);
+
+#define atomic_fetch_and(p,x) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicAndU64, \
+                                _Atomic(uint32_t) *: atomicAndU32, \
+                                _Atomic(uint16_t) *: atomicAndU16, \
+                                _Atomic(uint8_t) *: atomicAndU8,   \
+                                int *: atomicAndInt)(p,x)
+
+int atomicAndInt(int *p, int x);
+uint64_t atomicAndU64(_Atomic(uint64_t) *p, uint64_t x);
+uint32_t atomicAndU32(_Atomic(uint32_t) *p, uint32_t x);
+uint16_t atomicAndU16(_Atomic(uint16_t) *p, uint16_t x);
+uint8_t atomicAndU8(_Atomic(uint8_t) *p, uint8_t x);
+
+#define atomic_fetch_or(p,x) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicOrU64, \
+                                _Atomic(uint32_t) *: atomicOrU32, \
+                                _Atomic(uint16_t) *: atomicOrU16, \
+                                _Atomic(uint8_t) *: atomicOrU8,   \
+                                int *: atomicOrInt)(p,x)
+
+int atomicOrInt(int *p, int x);
+uint64_t atomicOrU64(_Atomic(uint64_t) *p, uint64_t x);
+uint32_t atomicOrU32(_Atomic(uint32_t) *p, uint32_t x);
+uint16_t atomicOrU16(_Atomic(uint16_t) *p, uint16_t x);
+uint8_t atomicOrU8(_Atomic(uint8_t) *p, uint8_t x);
+
+#define atomic_fetch_xor(p,x) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicXorU64, \
+                                _Atomic(uint32_t) *: atomicXorU32, \
+                                _Atomic(uint16_t) *: atomicXorU16, \
+                                _Atomic(uint8_t) *: atomicXorU8,   \
+                                int *: atomicXorInt)(p,x)
+
+int atomicXorInt(int *p, int x);
+uint64_t atomicXorU64(_Atomic(uint64_t) *p, uint64_t x);
+uint32_t atomicXorU32(_Atomic(uint32_t) *p, uint32_t x);
+uint16_t atomicXorU16(_Atomic(uint16_t) *p, uint16_t x);
+uint8_t atomicXorU8(_Atomic(uint8_t) *p, uint8_t x);
+
+#define atomic_store(p,x) _Generic((p), \
+                                   _Atomic(uint64_t) *: atomicStoreU64, \
+                                   _Atomic(uint32_t) *: atomicStoreU32, \
+                                   _Atomic(uint16_t) *: atomicStoreU16, \
+                                   _Atomic(uint8_t) *: atomicStoreU8,   \
+                                   int *: atomicStoreInt)(p,x)
+
+void atomicStoreInt(int *p, int x);
+void atomicStoreU64(_Atomic(uint64_t) *p, uint64_t x);
+void atomicStoreU32(_Atomic(uint32_t) *p, uint32_t x);
+void atomicStoreU16(_Atomic(uint16_t) *p, uint16_t x);
+void atomicStoreU8(_Atomic(uint8_t) *p, uint8_t x);
+
+#define atomic_load(p) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicLoadU64, \
+                                _Atomic(uint32_t) *: atomicLoadU32, \
+                                _Atomic(uint16_t) *: atomicLoadU16, \
+                                _Atomic(uint8_t) *: atomicLoadU8,   \
+                                int *: atomicLoadInt)(p)
+
+int atomicLoadInt(int *p);
+uint64_t atomicLoadU64(_Atomic(uint64_t) *p);
+uint32_t atomicLoadU32(_Atomic(uint32_t) *p);
+uint16_t atomicLoadU16(_Atomic(uint16_t) *p);
+uint8_t atomicLoadU8(_Atomic(uint8_t) *p);
+
+#define atomic_exchange(p,x) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicExchangeU64, \
+                                _Atomic(uint32_t) *: atomicExchangeU32, \
+                                _Atomic(uint16_t) *: atomicExchangeU16, \
+                                _Atomic(uint8_t) *: atomicExchangeU8,   \
+                                int *: atomicExchangeInt)(p,x)
+
+int atomicExchangeInt(int *p, int x);
+uint64_t atomicExchangeU64(_Atomic(uint64_t) *p, uint64_t x);
+uint32_t atomicExchangeU32(_Atomic(uint32_t) *p, uint32_t x);
+uint16_t atomicExchangeU16(_Atomic(uint16_t) *p, uint16_t x);
+uint8_t atomicExchangeU8(_Atomic(uint8_t) *p, uint8_t x);
+
+#define atomic_compare_exchange_strong(p,exp,desired) _Generic((p), \
+                                _Atomic(uint64_t) *: atomicCompareExchangeStrongU64, \
+                                _Atomic(uint32_t) *: atomicCompareExchangeStrongU32, \
+                                _Atomic(uint16_t) *: atomicCompareExchangeStrongU16, \
+                                _Atomic(uint8_t) *: atomicCompareExchangeStrongU8,   \
+                                int *: atomicCompareExchangeStrongInt)(p,exp,desired)
+
+
+_Bool atomicCompareExchangeStrongInt(int *p, int *exp, int desired);
+_Bool atomicCompareExchangeStrongU64(_Atomic(uint64_t) *p, uint64_t *exp, uint64_t desired);
+_Bool atomicCompareExchangeStrongU32(_Atomic(uint32_t) *p, uint32_t *exp, uint32_t desired);
+_Bool atomicCompareExchangeStrongU16(_Atomic(uint16_t) *p, uint16_t *exp, uint16_t desired);
+_Bool atomicCompareExchangeStrongU8(_Atomic(uint8_t) *p, uint8_t *exp, uint8_t desired);
+
+
+#endif
+
 
 typedef struct fake_uint128_tag{
   uint64_t hi;
