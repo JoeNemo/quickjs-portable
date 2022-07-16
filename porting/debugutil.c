@@ -50,6 +50,14 @@ void printf2(char *formatString, ...){
   printf("%s\n",text);
 }
 
+int putchar2(int c){
+  if (c >= 0 && c < 256){
+    return putchar(ebcdicTable[(char)c]);
+  } else{
+    return putchar('_');
+  }
+}
+
 static char hexDigits[16] ={ '0', '1', '2', '3',
 			     '4', '5', '6', '7', 
 			     '8', '9', 'A', 'B',

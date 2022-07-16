@@ -17,10 +17,14 @@ size_t malloc_usable_size (const void *ptr){
     data -= 4;
     return *((int*)data) - 0x10; /* that's the 64 bit malloc overhead */
   } else{
+    data -= 4;
+#ifdef _LP64
     return *((int*)data) - 0x10; /* that's the 31 bit malloc overhead */
+#else
+    return *((int*)data) - 0x08; /* that's the 31 bit malloc overhead */
+#endif
   }
 }
-
 
 #if defined(__XPLINK__)
 int32_t atomicIncrementI32(int32_t *place, int32_t increment){
