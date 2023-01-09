@@ -32814,7 +32814,7 @@ static __exception int ss_check(JSContext *ctx, StackSizeState *s,
                                 int pos, int op, int stack_len)
 {
     if ((unsigned)pos >= s->bc_len) {
-      JS_ThrowInternalError(ctx, "ss_check bytecode buffer overflow (op=%d [%s], pc=%d). Function=%s", op, get_id_from_opcode(op), pos, fd->source);
+        JS_ThrowInternalError(ctx, "ss_check bytecode buffer overflow (op=%d [%s], pc=%d). Function=%s", op, get_id_from_opcode(op), pos, fd->source);
         return -1;
     }
     if (stack_len > s->stack_len_max) {
