@@ -277,6 +277,541 @@ enum OPCodeEnum {
 
 typedef enum OPCodeEnum OPCodeEnum;
 
+static char *get_id_from_opcode(OPCodeEnum op)
+{
+    switch(op) {
+    case OP_invalid:
+        return "invalid";
+    case OP_push_i32:
+        return "push_i32";
+    case OP_push_const:
+        return "push_const";
+    case OP_fclosure:
+        return "fclosure";
+    case OP_push_atom_value:
+        return "push_atom_value";
+    case OP_private_symbol:
+        return "private_symbol";
+    case OP_undefined:
+        return "undefined";
+    case OP_null:
+        return "null";
+    case OP_push_this:
+        return "push_this";
+    case OP_push_false:
+        return "push_false";
+    case OP_push_true:
+        return "push_true";
+    case OP_object:
+        return "object";
+    case OP_special_object:
+        return "special_object";
+    case OP_rest:
+        return "rest";
+    case OP_drop:
+        return "drop";
+    case OP_nip:
+        return "nip";
+    case OP_nip1:
+        return "nip1";
+    case OP_dup:
+        return "dup";
+    case OP_dup1:
+        return "dup1";
+    case OP_dup2:
+        return "dup2";
+    case OP_dup3:
+        return "dup3";
+    case OP_insert2:
+        return "insert2";
+    case OP_insert3:
+        return "insert3";
+    case OP_insert4:
+        return "insert4";
+    case OP_perm3:
+        return "perm3";
+    case OP_perm4:
+        return "perm4";
+    case OP_perm5:
+        return "perm5";
+    case OP_swap:
+        return "swap";
+    case OP_swap2:
+        return "swap2";
+    case OP_rot3l:
+        return "rot3l";
+    case OP_rot3r:
+        return "rot3r";
+    case OP_rot4l:
+        return "rot4l";
+    case OP_rot5l:
+        return "rot5l";
+    case OP_call_constructor:
+        return "call_constructor";
+    case OP_call:
+        return "call";
+    case OP_tail_call:
+        return "tail_call";
+    case OP_call_method:
+        return "call_method";
+    case OP_tail_call_method:
+        return "tail_call_method";
+    case OP_array_from:
+        return "array_from";
+    case OP_apply:
+        return "apply";
+    case OP_return:
+        return "return";
+    case OP_return_undef:
+        return "return_undef";
+    case OP_check_ctor_return:
+        return "check_ctor_return";
+    case OP_check_ctor:
+        return "check_ctor";
+    case OP_check_brand:
+        return "checK_brand";
+    case OP_add_brand:
+        return "add_brand";
+    case OP_return_async:
+        return "return_async";
+    case OP_throw:
+        return "throw";
+    case OP_throw_error:
+        return "throw_error";
+    case OP_eval:
+        return "eval";
+    case OP_apply_eval:
+        return "apply_eval";
+    case OP_regexp:
+        return "regexp";
+    case OP_get_super:
+        return "get_super";
+    case OP_import:
+        return "import";
+    case OP_check_var:
+        return "check_var";
+    case OP_get_var_undef:
+        return "get_var_undef";
+    case OP_get_var:
+        return "get_var";
+    case OP_put_var:
+        return "put_var";
+    case OP_put_var_init:
+        return "put_var_init";
+    case OP_put_var_strict:
+        return "put_var_strict";
+    case OP_get_ref_value:
+        return "get_ref_value";
+    case OP_put_ref_value:
+        return "put_ref_value";
+    case OP_define_var:
+        return "define_var";
+    case OP_check_define_var:
+        return "check_define_var";
+    case OP_define_func:
+        return "define_func";
+    case OP_get_field:
+        return "get_field";
+    case OP_get_field2:
+        return "get_field2";
+    case OP_put_field:
+        return "put_field";
+    case OP_get_private_field:
+        return "get_private_field";
+    case OP_put_private_field:
+        return "put_private_field";
+    case OP_define_private_field:
+        return "define_private_field";
+    case OP_get_array_el:
+        return "get_array_el";
+    case OP_get_array_el2:
+        return "get_array_el2";
+    case OP_put_array_el:
+        return "put_array_el";
+    case OP_get_super_value:
+        return "get_super_value";
+    case OP_put_super_value:
+        return "put_super_value";
+    case OP_define_field:
+        return "define_field";
+    case OP_set_name:
+        return "set_name";
+    case OP_set_name_computed:
+        return "set_name_computed";
+    case OP_set_proto:
+        return "set_proto";
+    case OP_set_home_object:
+        return "set_home_object";
+    case OP_define_array_el:
+        return "define_array_el";
+    case OP_append:
+        return "append";
+    case OP_copy_data_properties:
+        return "copy_data_properties";
+    case OP_define_method:
+        return "define_method";
+    case OP_define_method_computed:
+        return "define_method_computed";
+    case OP_define_class:
+        return "define_class";
+    case OP_define_class_computed:
+        return "define_class_computed";
+    case OP_get_loc:
+        return "get_loc";
+    case OP_put_loc:
+        return "put_loc";
+    case OP_set_loc:
+        return "set_loc";
+    case OP_get_arg:
+        return "get_arg";
+    case OP_put_arg:
+        return "put_arg";
+    case OP_set_arg:
+        return "set_arg";
+    case OP_get_var_ref:
+        return "get_var_ref";
+    case OP_put_var_ref:
+        return "put_var_ref";
+    case OP_set_var_ref:
+        return "set_var_ref";
+    case OP_set_loc_uninitialized:
+        return "set_loc_uninitialized";
+    case OP_get_loc_check:
+        return "get_loc_check";
+    case OP_put_loc_check:
+        return "put_loc_check";
+    case OP_put_loc_check_init:
+        return "put_loc_check_init";
+    case OP_get_var_ref_check:
+        return "get_var_ref_check";
+    case OP_put_var_ref_check:
+        return "put_var_ref_check";
+    case OP_put_var_ref_check_init:
+        return "put_var_ref_check_init";
+    case OP_close_loc:
+        return "close_loc";
+    case OP_if_false:
+        return "if_false";
+    case OP_if_true:
+        return "if_true";
+    case OP_goto:
+        return "goto";
+    case OP_catch:
+        return "catch";
+    case OP_gosub:
+        return "gosub";
+    case OP_ret:
+        return "ret";
+    case OP_to_object:
+        return "to_object";
+    case OP_to_propkey:
+        return "to_propkey";
+    case OP_to_propkey2:
+        return "to_propkey2";
+    case OP_with_get_var:
+        return "with_get_var";
+    case OP_with_put_var:
+        return "with_put_var";
+    case OP_with_delete_var:
+        return "with_delete_var";
+    case OP_with_make_ref:
+        return "with_make_ref";
+    case OP_with_get_ref:
+        return "with_get_ref";
+    case OP_with_get_ref_undef:
+        return "with_get_ref_undef";
+    case OP_make_loc_ref:
+        return "make_loc_ref";
+    case OP_make_arg_ref:
+        return "make_arg_ref";
+    case OP_make_var_ref_ref:
+        return "make_var_ref_ref";
+    case OP_make_var_ref:
+        return "make_var_ref";
+    case OP_for_in_start:
+        return "for_in_start";
+    case OP_for_of_start:
+        return "for_of_start";
+    case OP_for_await_of_start:
+        return "for_await_of_start";
+    case OP_for_in_next:
+        return "for_in_next";
+    case OP_for_of_next:
+        return "for_of_next";
+    case OP_iterator_check_object:
+        return "iterator_check_object";
+    case OP_iterator_get_value_done:
+        return "iterator_get_value_done";
+    case OP_iterator_close:
+        return "iterator_close";
+    case OP_iterator_close_return:
+        return "iterator_close_return";
+    case OP_iterator_next:
+        return "iterator_next";
+    case OP_iterator_call:
+        return "iterator_call";
+    case OP_initial_yield:
+        return "initial_yield";
+    case OP_yield:
+        return "yield";
+    case OP_yield_star:
+        return "yield_start";
+    case OP_async_yield_star:
+        return "async_yield_star";
+    case OP_await:
+        return "await";
+    case OP_neg:
+        return "neg";
+    case OP_plus:
+        return "plus";
+    case OP_dec:
+        return "dec";
+    case OP_inc:
+        return "inc";
+    case OP_post_dec:
+        return "post_dec";
+    case OP_post_inc:
+        return "post_inc";
+    case OP_dec_loc:
+        return "dec_loc";
+    case OP_inc_loc:
+        return "inc_loc";
+    case OP_add_loc:
+        return "add_loc";
+    case OP_not:
+        return "not";
+    case OP_lnot:
+        return "lnot";
+    case OP_typeof:
+        return "typeof";
+    case OP_delete:
+        return "delete";
+    case OP_delete_var:
+        return "delete_var";
+    case OP_mul:
+        return "mul";
+    case OP_div:
+        return "div";
+    case OP_mod:
+        return "mod";
+    case OP_add:
+        return "add";
+    case OP_sub:
+        return "sub";
+    case OP_pow:
+        return "pow";
+    case OP_shl:
+        return "shl";
+    case OP_sar:
+        return "sar";
+    case OP_shr:
+        return "shr";
+    case OP_lt:
+        return "lt";
+    case OP_lte:
+        return "lte";
+    case OP_gt:
+        return "gt";
+    case OP_gte:
+        return "gte";
+    case OP_instanceof:
+        return "instanceof";
+    case OP_in:
+        return "in";
+    case OP_eq:
+        return "eq";
+    case OP_neq:
+        return "neq";
+    case OP_strict_eq:
+        return "strict_eq";
+    case OP_strict_neq:
+        return "strict_neq";
+    case OP_and:
+        return "and";
+    case OP_xor:
+        return "xor";
+    case OP_or:
+        return "or";
+    case OP_is_undefined_or_null:
+        return "is_undefined_or_null";
+#ifdef CONFIG_BIGNUM
+    case OP_mul_pow10:
+        return "mul_pow10";
+    case OP_math_mod:
+        return "math_mod";
+#endif
+    case OP_nop:
+        return "nop";
+    case OP_enter_scope:
+        return "enter_scope";
+    case OP_leave_scope:
+        return "leave_scope";
+    case OP_label:
+        return "label";
+    case OP_scope_get_var_undef:
+        return "scope_get_var_undef";
+    case OP_scope_get_var:
+        return "scope_get_var";
+    case OP_scope_put_var:
+        return "scope_put_var";
+    case OP_scope_delete_var:
+        return "scope_delete_var";
+    case OP_scope_make_ref:
+        return "scope_make_ref";
+    case OP_scope_get_ref:
+        return "scope_get_ref";
+    case OP_scope_put_var_init:
+        return "scope_put_var_init";
+    case OP_scope_get_private_field:
+        return "scope_get_private_field";
+    case OP_scope_get_private_field2:
+        return "scope_get_private_field2";
+    case OP_scope_put_private_field:
+        return "scope_put_private_field";
+    case OP_set_class_name:
+        return "set_class_name";
+    case OP_line_num:
+        return "line_num";
+#ifdef SHORT_OPCODES
+    case OP_push_minus1:
+        return "push_minus1";
+    case OP_push_0:
+        return "push_0";
+    case OP_push_1:
+        return "push_1";
+    case OP_push_2:
+        return "push_2";
+    case OP_push_3:
+        return "push_3";
+    case OP_push_4:
+        return "push_4";
+    case OP_push_5:
+        return "push_5";
+    case OP_push_6:
+        return "push_6";
+    case OP_push_7:
+        return "push_7";
+    case OP_push_i8:
+        return "push_i8";
+    case OP_push_i16:
+        return "push_i16";
+    case OP_push_const8:
+        return "push_const8";
+    case OP_fclosure8:
+        return "fclosure8";
+    case OP_push_empty_string:
+        return "push_empty_string";
+    case OP_get_loc8:
+        return "get_loc8";
+    case OP_put_loc8:
+        return "put_loc8";
+    case OP_set_loc8:
+        return "set_loc8";
+    case OP_get_loc0:
+        return "get_loc0";
+    case OP_get_loc1:
+        return "get_loc1";
+    case OP_get_loc2:
+        return "get_loc2";
+    case OP_get_loc3:
+        return "get_loc3";
+    case OP_put_loc0:
+        return "put_loc0";
+    case OP_put_loc1:
+        return "put_loc1";
+    case OP_put_loc2:
+        return "put_loc2";
+    case OP_put_loc3:
+        return "put_loc3";
+    case OP_set_loc0:
+        return "set_loc0";
+    case OP_set_loc1:
+        return "set_loc1";
+    case OP_set_loc2:
+        return "set_loc2";
+    case OP_set_loc3:
+        return "set_loc3";
+    case OP_get_arg0:
+        return "get_arg0";
+    case OP_get_arg1:
+        return "get_arg1";
+    case OP_get_arg2:
+        return "get_arg2";
+    case OP_get_arg3:
+        return "get_arg3";
+    case OP_put_arg0:
+        return "put_arg0";
+    case OP_put_arg1:
+        return "put_arg1";
+    case OP_put_arg2:
+        return "put_arg2";
+    case OP_put_arg3:
+        return "put_arg3";
+    case OP_set_arg0:
+        return "set_arg0";
+    case OP_set_arg1:
+        return "set_arg1";
+    case OP_set_arg2:
+        return "set_arg2";
+    case OP_set_arg3:
+        return "set_arg3";
+    case OP_get_var_ref0:
+        return "get_var_ref0";
+    case OP_get_var_ref1:
+        return "get_var_ref1";
+    case OP_get_var_ref2:
+        return "get_var_ref2";
+    case OP_get_var_ref3:
+        return "get_var_ref3";
+    case OP_put_var_ref0:
+        return "put_var_ref0";
+    case OP_put_var_ref1:
+        return "put_var_ref1";
+    case OP_put_var_ref2:
+        return "put_var_ref2";
+    case OP_put_var_ref3:
+        return "put_var_ref3";
+    case OP_set_var_ref0:
+        return "set_var_ref0";
+    case OP_set_var_ref1:
+        return "set_var_ref1";
+    case OP_set_var_ref2:
+        return "set_var_ref2";
+    case OP_set_var_ref3:
+        return "set_var_ref3";
+    case OP_get_length:
+        return "get_length";
+    case OP_if_false8:
+        return "if_false8";
+    case OP_if_true8:
+        return "if_true8";
+    case OP_goto8:
+        return "goto8";
+    case OP_goto16:
+        return "goto16";
+    case OP_call0:
+        return "call0";
+    case OP_call1:
+        return "call1";
+    case OP_call2:
+        return "call2";
+    case OP_call3:
+        return "call3";
+    case OP_is_undefined:
+        return "is_undefined";
+    case OP_is_null:
+        return "is_null";
+    case OP_typeof_is_undefined:
+        return "typeof_is_undefined";
+    case OP_typeof_is_function:
+        return "typeof_is_function";
+#endif
+    default:
+        return "opcode_missing_string";
+    }
+}
+
+
 #ifdef CONFIG_BIGNUM
 /* function pointers are used for numeric operations so that it is
    possible to remove some numeric types */
@@ -12409,6 +12944,7 @@ static const char js_overloadable_operator_names[JS_OVOP_COUNT][4] = {
     "--",
     "~",
 };
+
 
 static int get_ovop_from_opcode(OPCodeEnum op)
 {
@@ -32274,16 +32810,17 @@ typedef struct StackSizeState {
 
 /* 'op' is only used for error indication */
 static __exception int ss_check(JSContext *ctx, StackSizeState *s,
+                                JSFunctionDef *fd,
                                 int pos, int op, int stack_len)
 {
     if ((unsigned)pos >= s->bc_len) {
-        JS_ThrowInternalError(ctx, "bytecode buffer overflow (op=%d, pc=%d)", op, pos);
+        JS_ThrowInternalError(ctx, "ss_check bytecode buffer overflow (op=%d [%s], pc=%d). Function=%s", op, get_id_from_opcode(op), pos, fd->source);
         return -1;
     }
     if (stack_len > s->stack_len_max) {
         s->stack_len_max = stack_len;
         if (s->stack_len_max > JS_STACK_SIZE_MAX) {
-            JS_ThrowInternalError(ctx, "stack overflow (op=%d, pc=%d)", op, pos);
+            JS_ThrowInternalError(ctx, "stack overflow (op=%d [%s], pc=%d)", op, get_id_from_opcode(op), pos);
             return -1;
         }
     }
@@ -32333,7 +32870,7 @@ static __exception int compute_stack_size(JSContext *ctx,
     s->pc_stack_size = 0;
 
     /* breadth-first graph exploration */
-    if (ss_check(ctx, s, 0, OP_invalid, 0))
+    if (ss_check(ctx, s, fd, 0, OP_invalid, 0))
         goto fail;
 
     while (s->pc_stack_len > 0) {
@@ -32341,13 +32878,13 @@ static __exception int compute_stack_size(JSContext *ctx,
         stack_len = s->stack_level_tab[pos];
         op = bc_buf[pos];
         if (op == 0 || op >= OP_COUNT) {
-            JS_ThrowInternalError(ctx, "invalid opcode (op=%d, pc=%d)", op, pos);
+            JS_ThrowInternalError(ctx, "invalid opcode (op=%d [%s], pc=%d)", op, get_id_from_opcode(op), pos);
             goto fail;
         }
         oi = &short_opcode_info(op);
         pos_next = pos + oi->size;
         if (pos_next > s->bc_len) {
-            JS_ThrowInternalError(ctx, "bytecode buffer overflow (op=%d, pc=%d)", op, pos);
+            JS_ThrowInternalError(ctx, "bytecode buffer overflow (op=%d [%s], pc=%d)", op, get_id_from_opcode(op), pos);
             goto fail;
         }
         n_pop = oi->n_pop;
@@ -32363,14 +32900,14 @@ static __exception int compute_stack_size(JSContext *ctx,
         }
 
         if (stack_len < n_pop) {
-            JS_ThrowInternalError(ctx, "stack underflow (op=%d, pc=%d)", op, pos);
+            JS_ThrowInternalError(ctx, "stack underflow (op=%d [%s], pc=%d)", op, get_id_from_opcode(op), pos);
             goto fail;
         }
         stack_len += oi->n_push - n_pop;
         if (stack_len > s->stack_len_max) {
             s->stack_len_max = stack_len;
             if (s->stack_len_max > JS_STACK_SIZE_MAX) {
-                JS_ThrowInternalError(ctx, "stack overflow (op=%d, pc=%d)", op, pos);
+                JS_ThrowInternalError(ctx, "stack overflow (op=%d [%s], pc=%d)", op, get_id_from_opcode(op), pos);
                 goto fail;
             }
         }
@@ -32400,7 +32937,7 @@ static __exception int compute_stack_size(JSContext *ctx,
         case OP_if_true8:
         case OP_if_false8:
             diff = (int8_t)bc_buf[pos + 1];
-            if (ss_check(ctx, s, pos + 1 + diff, op, stack_len))
+            if (ss_check(ctx, s, fd, pos + 1 + diff, op, stack_len))
                 goto fail;
             break;
 #endif
@@ -32408,37 +32945,37 @@ static __exception int compute_stack_size(JSContext *ctx,
         case OP_if_false:
         case OP_catch:
             diff = get_u32(bc_buf + pos + 1);
-            if (ss_check(ctx, s, pos + 1 + diff, op, stack_len))
+            if (ss_check(ctx, s, fd, pos + 1 + diff, op, stack_len))
                 goto fail;
             break;
         case OP_gosub:
             diff = get_u32(bc_buf + pos + 1);
-            if (ss_check(ctx, s, pos + 1 + diff, op, stack_len + 1))
+            if (ss_check(ctx, s, fd, pos + 1 + diff, op, stack_len + 1))
                 goto fail;
             break;
         case OP_with_get_var:
         case OP_with_delete_var:
             diff = get_u32(bc_buf + pos + 5);
-            if (ss_check(ctx, s, pos + 5 + diff, op, stack_len + 1))
+            if (ss_check(ctx, s, fd, pos + 5 + diff, op, stack_len + 1))
                 goto fail;
             break;
         case OP_with_make_ref:
         case OP_with_get_ref:
         case OP_with_get_ref_undef:
             diff = get_u32(bc_buf + pos + 5);
-            if (ss_check(ctx, s, pos + 5 + diff, op, stack_len + 2))
+            if (ss_check(ctx, s, fd, pos + 5 + diff, op, stack_len + 2))
                 goto fail;
             break;
         case OP_with_put_var:
             diff = get_u32(bc_buf + pos + 5);
-            if (ss_check(ctx, s, pos + 5 + diff, op, stack_len - 1))
+            if (ss_check(ctx, s, fd, pos + 5 + diff, op, stack_len - 1))
                 goto fail;
             break;
 
         default:
             break;
         }
-        if (ss_check(ctx, s, pos_next, op, stack_len))
+        if (ss_check(ctx, s, fd, pos_next, op, stack_len))
             goto fail;
     done_insn: ;
     }
