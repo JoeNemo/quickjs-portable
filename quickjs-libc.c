@@ -2579,6 +2579,9 @@ static JSValue js_os_stat(JSContext *ctx, JSValueConst this_val,
         JS_DefinePropertyValueStr(ctx, obj, "size",
                                   JS_NewInt64(ctx, st.st_size),
                                   JS_PROP_C_W_E);
+    	JS_DefinePropertyValueStr(ctx, obj, "ccsid",
+                                  JS_NewInt64(ctx, st.st_ccsid),
+                                  JS_PROP_C_W_E);
 #if !defined(_WIN32)
         JS_DefinePropertyValueStr(ctx, obj, "blocks",
                                   JS_NewInt64(ctx, st.st_blocks),
