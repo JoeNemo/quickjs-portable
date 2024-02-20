@@ -122,6 +122,7 @@ int convertOpenStream(int fd, unsigned short fileCCSID){
 }
 
 #define CCSID_BINARY 65535
+#define CCSID_NONE 0
 
 int tagFile(const char *pathname, unsigned short ccsid){
 #if defined(_LP64) && defined(ZCOMPILE_CLANG)
@@ -130,7 +131,11 @@ int tagFile(const char *pathname, unsigned short ccsid){
 
   attr.att_filetagchg = 1;
   attr.att_filetag.ft_ccsid = ccsid;
-  attr.att_filetag.ft_txtflag = (ccsid == CCSID_BINARY ? 0 : 1);
+  if (ccsid == CCSID_NONE || ccsid == CCSID_BINARY ) {
+    attr.att_filetag.ft_txtflag = 0;
+  } else {
+    attr.att_filetag.ft_txtflag = 1;
+  }
 
   int res = __chattr64((char*)pathname, &attr, sizeof(attr));
 #else
@@ -139,7 +144,11 @@ int tagFile(const char *pathname, unsigned short ccsid){
 
   attr.att_filetagchg = 1;
   attr.att_filetag.ft_ccsid = ccsid;
-  attr.att_filetag.ft_txtflag = (ccsid == CCSID_BINARY ? 0 : 1);
+  if (ccsid == CCSID_NONE || ccsid == CCSID_BINARY ) {
+    attr.att_filetag.ft_txtflag = 0;
+  } else {
+    attr.att_filetag.ft_txtflag = 1;
+  }
 
   int res = __chattr((char*)pathname, &attr, sizeof(attr));
 #endif
