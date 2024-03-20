@@ -47,7 +47,7 @@ void printf2(char *formatString, ...){
   cnt = vsnprintf(text,sizeof(text),formatString,argPointer);
   va_end(argPointer);
   toEBCDIC(text,cnt);
-  printf("%s\n",text);
+  printf("%s",text);
 }
 
 int putchar2(int c){
