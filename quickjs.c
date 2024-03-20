@@ -33250,13 +33250,13 @@ static __exception int compute_stack_size(JSContext *ctx,
         stack_len = s->stack_level_tab[pos];
         op = bc_buf[pos];
         if (op == 0 || op >= OP_COUNT) {
-            JS_ThrowInternalError(ctx, "invalid opcode (op=%d [%s], pc=%d)", op, get_id_from_opcode(op), pos);
+          JS_ThrowInternalError(ctx, "invalid opcode (op=%d [%s], pc=%d). Function=%s", op, get_id_from_opcode(op), pos, fd->source);
             goto fail;
         }
         oi = &short_opcode_info(op);
         pos_next = pos + oi->size;
         if (pos_next > s->bc_len) {
-            JS_ThrowInternalError(ctx, "bytecode buffer overflow (op=%d [%s], pc=%d)", op, get_id_from_opcode(op), pos);
+          JS_ThrowInternalError(ctx, "bytecode buffer overflow (op=%d [%s], pc=%d). Function=%s", op, get_id_from_opcode(op), pos, fd->source);
             goto fail;
         }
         n_pop = oi->n_pop;
