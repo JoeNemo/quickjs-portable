@@ -2680,8 +2680,17 @@ static JSValue js_os_sleep(JSContext *ctx, JSValueConst this_val,
     }
 #elif defined(__MVS__)
     {
+      // NOTE: In z/OS 2.4 and under, nanosleep doesn't exist.
+      //       It was added in 2.5.
+      // TODO: When 2.4 is no longer supported by us, switch this to use nanosleep
+      // HACK: Due to lack of nanosleep, we sleep or usleep. With sleep, we lose granularity.
+      if (delay >= 1000) {
+        int uStatus = sleep(delay/1000);
+        ret = (uStatus ? errno : 0);
+      } else {
         int uStatus = usleep(delay*1000);  /* JOENemo milli->micro */
-	ret = (uStatus ? errno : 0);
+        ret = (uStatus ? errno : 0);
+      }
     }
 #else
     {
