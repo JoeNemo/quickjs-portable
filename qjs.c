@@ -458,7 +458,7 @@ int main(int argc, char **argv)
         }
     }
 
-#ifdef CONFIG_BIGNUM /* JOENemo - this is not a platform change, but an actual bug. */
+#ifdef CONFIG_BIGNUM
     if (load_jscalc)
         bignum_ext = 1;
 #endif
