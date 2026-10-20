@@ -73,11 +73,22 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
+#include <grp.h>     /* setgroups(); z/OS declares it in porting/polyfill.h */
 
 #ifdef __MVS__ /* JOENemo */
 #include "porting/polyfill.h"
-#define PATH_MAX _POSIX_PATH_MAX
+#ifndef PATH_MAX
+#define PATH_MAX 1023
+#endif
+#ifndef NAME_MAX
+#define NAME_MAX 255
+#endif
 extern char **environ;
+/* A credential failure in the exec() child is worth a line on stderr on z/OS:
+   errno alone (often EMVSERR) says nothing, the reason code names the cause. */
+#define exec_child_fail(what) do { execChildError(what); _exit(127); } while (0)
+#else
+#define exec_child_fail(what) _exit(127)
 #endif
 
 #if defined(__APPLE__)
@@ -795,12 +806,16 @@ static JSValue js_evalScript(JSContext *ctx, JSValueConst this_val,
     JSValue ret;
     JSValueConst options_obj;
     BOOL backtrace_barrier = FALSE;
+    BOOL is_async = FALSE;
     int flags;
     
     if (argc >= 2) {
         options_obj = argv[1];
         if (get_bool_option(ctx, &backtrace_barrier, options_obj,
                             "backtrace_barrier"))
+            return JS_EXCEPTION;
+        if (get_bool_option(ctx, &is_async, options_obj,
+                            "async"))
             return JS_EXCEPTION;
     }
 
@@ -814,6 +829,8 @@ static JSValue js_evalScript(JSContext *ctx, JSValueConst this_val,
     flags = JS_EVAL_TYPE_GLOBAL; 
     if (backtrace_barrier)
         flags |= JS_EVAL_FLAG_BACKTRACE_BARRIER;
+    if (is_async)
+        flags |= JS_EVAL_FLAG_ASYNC;
     ret = JS_Eval(ctx, str, len, "<evalScript>", flags);
     JS_FreeCString(ctx, str);
     if (!ts->recv_pipe && --ts->eval_script_recurse == 0) {
@@ -1391,16 +1408,17 @@ static JSValue js_std_urlGet(JSContext *ctx, JSValueConst this_val,
     }
     
     js_std_dbuf_init(ctx, &cmd_buf);
-    dbuf_printf(&cmd_buf, "%s ''", URL_GET_PROGRAM);
+    dbuf_printf(&cmd_buf, "%s '", URL_GET_PROGRAM);
     len = strlen(url);
     for(i = 0; i < len; i++) {
         c = url[i];
-        if (c == '\'' || c == '\\')
-            dbuf_putc(&cmd_buf, '\\');
-        dbuf_putc(&cmd_buf, c);
+        if (c == '\'')
+            dbuf_putstr(&cmd_buf, "'\\''");
+        else
+            dbuf_putc(&cmd_buf, c);
     }
     JS_FreeCString(ctx, url);
-    dbuf_putstr(&cmd_buf, "''");
+    dbuf_putc(&cmd_buf, '\'');
     dbuf_putc(&cmd_buf, '\0');
     if (dbuf_error(&cmd_buf)) {
         dbuf_free(&cmd_buf);
@@ -2022,6 +2040,13 @@ static int64_t get_time_ms(void)
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000 + (ts.tv_nsec / 1000000);
 }
+
+static int64_t get_time_ns(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000 + ts.tv_nsec;
+}
 #else
 /* more portable, but does not work if the date is updated */
 static int64_t get_time_ms(void)
@@ -2030,7 +2055,20 @@ static int64_t get_time_ms(void)
     gettimeofday(&tv, NULL);
     return (int64_t)tv.tv_sec * 1000 + (tv.tv_usec / 1000);
 }
+
+static int64_t get_time_ns(void)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (int64_t)tv.tv_sec * 1000000000 + (tv.tv_usec * 1000);
+}
 #endif
+
+static JSValue js_os_now(JSContext *ctx, JSValue this_val,
+                         int argc, JSValue *argv)
+{
+    return JS_NewFloat64(ctx, (double)get_time_ns() / 1e6);
+}
 
 static void unlink_timer(JSRuntime *rt, JSOSTimer *th)
 {
@@ -2113,6 +2151,38 @@ static JSClassDef js_os_timer_class = {
     .finalizer = js_os_timer_finalizer,
     .gc_mark = js_os_timer_mark,
 }; 
+
+/* return a promise */
+static JSValue js_os_sleepAsync(JSContext *ctx, JSValueConst this_val,
+                                int argc, JSValueConst *argv)
+{
+    JSRuntime *rt = JS_GetRuntime(ctx);
+    JSThreadState *ts = JS_GetRuntimeOpaque(rt);
+    int64_t delay;
+    JSOSTimer *th;
+    JSValue promise, resolving_funcs[2];
+
+    if (JS_ToInt64(ctx, &delay, argv[0]))
+        return JS_EXCEPTION;
+    promise = JS_NewPromiseCapability(ctx, resolving_funcs);
+    if (JS_IsException(promise))
+        return JS_EXCEPTION;
+
+    th = js_mallocz(ctx, sizeof(*th));
+    if (!th) {
+        JS_FreeValue(ctx, promise);
+        JS_FreeValue(ctx, resolving_funcs[0]);
+        JS_FreeValue(ctx, resolving_funcs[1]);
+        return JS_EXCEPTION;
+    }
+    th->has_object = FALSE;
+    th->timeout = get_time_ms() + delay;
+    th->func = JS_DupValue(ctx, resolving_funcs[0]);
+    list_add_tail(&th->link, &ts->os_timers);
+    JS_FreeValue(ctx, resolving_funcs[0]);
+    JS_FreeValue(ctx, resolving_funcs[1]);
+    return promise;
+}
 
 static void call_handler(JSContext *ctx, JSValueConst func)
 {
@@ -3040,13 +3110,22 @@ static JSValue js_os_exec(JSContext *ctx, JSValueConst this_val,
             if (chdir(cwd) < 0)
                 _exit(127);
         }
-        if (uid != -1) {
-            if (setuid(uid) < 0)
-                _exit(127);
+        if (uid != -1 || gid != -1) {
+            /* setuid() and setgid() leave the supplementary group list alone
+               and exec() inherits it, so a privileged parent must clear it
+               first or the child keeps the parent's group access. Only a
+               privileged parent can clear it, and only one has anything to
+               drop. gid before uid: setuid() gives up the right to setgid(). */
+            if (geteuid() == 0 && setgroups(0, NULL) < 0)
+                exec_child_fail("setgroups");
         }
         if (gid != -1) {
             if (setgid(gid) < 0)
-                _exit(127);
+                exec_child_fail("setgid");
+        }
+        if (uid != -1) {
+            if (setuid(uid) < 0)
+                exec_child_fail("setuid");
         }
 
         if (!file)
@@ -3094,6 +3173,13 @@ static JSValue js_os_exec(JSContext *ctx, JSValueConst this_val,
  exception:
     ret_val = JS_EXCEPTION;
     goto done;
+}
+
+/* getpid() -> pid */
+static JSValue js_os_getpid(JSContext *ctx, JSValueConst this_val,
+                            int argc, JSValueConst *argv)
+{
+    return JS_NewInt32(ctx, getpid());
 }
 
 /* waitpid(pid, block) -> [pid, status] */
@@ -3344,6 +3430,7 @@ static void *worker_func(void *opaque)
     JSRuntime *rt;
     JSThreadState *ts;
     JSContext *ctx;
+    JSValue promise;
     
     rt = JS_NewRuntime();
     if (rt == NULL) {
@@ -3370,8 +3457,11 @@ static void *worker_func(void *opaque)
 
     js_std_add_helpers(ctx, -1, NULL);
 
-    if (!JS_RunModule(ctx, args->basename, args->filename))
+    promise = JS_LoadModule(ctx, args->basename, args->filename);
+    if (JS_IsException(promise))
         js_std_dump_error(ctx);
+    /* XXX: check */
+    JS_FreeValue(ctx, promise);
     free(args->filename);
     free(args->basename);
     free(args);
@@ -3693,8 +3783,10 @@ static const JSCFunctionListEntry js_os_funcs[] = {
     OS_FLAG(SIGTTIN),
     OS_FLAG(SIGTTOU),
 #endif
+    JS_CFUNC_DEF("now", 0, js_os_now ),
     JS_CFUNC_DEF("setTimeout", 2, js_os_setTimeout ),
     JS_CFUNC_DEF("clearTimeout", 1, js_os_clearTimeout ),
+    JS_CFUNC_DEF("sleepAsync", 1, js_os_sleepAsync ),
     JS_PROP_STRING_DEF("platform", OS_PLATFORM, 0 ),
     JS_CFUNC_DEF("getcwd", 0, js_os_getcwd ),
     JS_CFUNC_DEF("chdir", 0, js_os_chdir ),
@@ -3722,6 +3814,7 @@ static const JSCFunctionListEntry js_os_funcs[] = {
     JS_CFUNC_DEF("symlink", 2, js_os_symlink ),
     JS_CFUNC_DEF("readlink", 1, js_os_readlink ),
     JS_CFUNC_DEF("exec", 1, js_os_exec ),
+    JS_CFUNC_DEF("getpid", 0, js_os_getpid ),
     JS_CFUNC_DEF("waitpid", 2, js_os_waitpid ),
     OS_FLAG(WNOHANG),
     JS_CFUNC_DEF("pipe", 0, js_os_pipe ),

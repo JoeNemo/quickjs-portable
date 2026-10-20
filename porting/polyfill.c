@@ -26,6 +26,25 @@ size_t malloc_usable_size (const void *ptr){
   }
 }
 
+#ifdef __MVS__
+void execChildError(const char *what){
+  int savedErrno = errno;
+  unsigned int reason = (unsigned int)__errno2();
+  char buf[160];
+  int len = snprintf(buf, sizeof(buf), "quickjs: exec: %s: errno=%d errno2=%08X\n",
+                     what, savedErrno, reason);
+  if (len > 0) {
+    if (len > (int)sizeof(buf) - 1) {
+      len = (int)sizeof(buf) - 1;
+    }
+    if (write(2, buf, len) < 0) {
+      /* nothing more can be done from the child */
+    }
+  }
+  errno = savedErrno;
+}
+#endif
+
 #if defined(__XPLINK__)
 int32_t atomicIncrementI32(int32_t *place, int32_t increment){
   int32_t oldValue = 0;

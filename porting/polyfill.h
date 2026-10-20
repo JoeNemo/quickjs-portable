@@ -219,9 +219,30 @@ size_t malloc_usable_size (const void *ptr);
 int32_t atomicIncrementI32(int32_t *intPointer, int32_t increment);
 int64_t atomicIncrementI64(int64_t *intPointer, int64_t increment);
 
+#ifdef __MVS__
+#include <sys/types.h>
+/* z/OS declares setgroups() in <grp.h> only under _OPEN_SYS, a feature macro
+   that must precede the first system header and that unistd.h, stat.h,
+   signal.h, socket.h and pthread.h all react to. The prototype is supplied
+   here instead; the call resolves against the C library under this name. */
+int setgroups(const int size, const gid_t list[]);
+
+/* From a forked child, before _exit(): write
+   "quickjs: exec: <what>: errno=N errno2=XXXXXXXX" to fd 2 without stdio.
+   The reason code (__errno2) is what explains EPERM and EMVSERR on z/OS,
+   for example JREnvDirty when BPX.DAEMON refuses setuid() from an address
+   space that loaded a program that is not program controlled. errno is
+   preserved. */
+void execChildError(const char *what);
+#endif
 
 
+
+/* ibm-clang64 (Open XL) provides clockid_t via its LE <time.h>; xlclang's LE
+ * does not. Polyfill everywhere except ibm-clang64 on z/OS. */
+#if !(defined(__MVS__) && defined(__clang__) && !defined(__ibmxl__))
 typedef int clockid_t;
+#endif
 
 #define CLOCK_REALTIME  0
 #define CLOCK_MONOTONIC 1

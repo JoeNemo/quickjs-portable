@@ -85,9 +85,7 @@ static const FeatureEntry feature_list[] = {
     { "promise", "Promise" },
 #define FE_MODULE_LOADER 9
     { "module-loader", NULL },
-#ifdef CONFIG_BIGNUM
     { "bigint", "BigInt" },
-#endif
 };
 
 void namelist_add(namelist_t *lp, const char *name, const char *short_name,
@@ -341,6 +339,7 @@ static const char main_c_template1[] =
 
 static const char main_c_template2[] =
     "  js_std_loop(ctx);\n"
+    "  js_std_free_handlers(rt);\n"
     "  JS_FreeContext(ctx);\n"
     "  JS_FreeRuntime(rt);\n"
     "  return 0;\n"
@@ -354,8 +353,8 @@ void help(void)
            "usage: " PROG_NAME " [options] [files]\n"
            "\n"
            "options are:\n"
-           "-c          only output bytecode in a C file\n"
-           "-e          output main() and bytecode in a C file (default = executable output)\n"
+           "-c          only output bytecode to a C file\n"
+           "-e          output main() and bytecode to a C file (default = executable output)\n"
            "-o output   set the output filename\n"
            "-N cname    set the C name of the generated data\n"
            "-m          compile as Javascript module (default=autodetect)\n"
@@ -621,17 +620,37 @@ int main(int argc, char **argv)
     }
 
     if (output_type == OUTPUT_EXECUTABLE) {
-#if defined(_WIN32) || defined(__ANDROID__)
+#if defined(_WIN32)
         /* XXX: find a /tmp directory ? */
         snprintf(cfilename, sizeof(cfilename), "out%d.c", getpid());
+        fo = fopen(cfilename, "w");
 #else
-        snprintf(cfilename, sizeof(cfilename), "/tmp/out%d.c", getpid());
+        char tmpl[1024];
+        int fd;
+#ifdef __ANDROID__
+        pstrcpy(tmpl, sizeof(tmpl), "qjscXXXXXX");
+#else
+        pstrcpy(tmpl, sizeof(tmpl), "/tmp/qjscXXXXXX");
+#endif
+        fd = mkstemp(tmpl);
+        if (fd < 0) {
+            perror(tmpl);
+            exit(1);
+        }
+        snprintf(cfilename, sizeof(cfilename), "%s.c", tmpl);
+        if (rename(tmpl, cfilename) < 0) {
+            perror(cfilename);
+            close(fd);
+            unlink(tmpl);
+            exit(1);
+        }
+        fo = fdopen(fd, "w");
 #endif
     } else {
         pstrcpy(cfilename, sizeof(cfilename), out_filename);
+        fo = fopen(cfilename, "w");
     }
-    
-    fo = fopen(cfilename, "w");
+
 #ifdef QASCII /* JOENemo */
     tagFile(cfilename, CHARSET_ISO8859);
 #endif
